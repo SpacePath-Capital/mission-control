@@ -1,26 +1,184 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
+/* Root variables */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-orbitron: 'Orbitron', sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Global reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Body styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-orbitron);
+  overflow: hidden;
+}
+
+/* Animation for Earth fading to 25% opacity without scaling */
+@keyframes earthFadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.25; /* Updated to 25% */
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Animation for Earth fading away post-login */
+@keyframes earthFadeAway {
+  0% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 0;
+  }
 }
+
+/* Animation for ISS flying in from top-right */
+@keyframes issFlyIn {
+  0% {
+    transform: scale(1);
+    top: 0;
+    right: 0;
+  }
+  100% {
+    transform: scale(2);
+    top: calc(50% + 52px); /* Align ISS center with Password input center */
+    right: calc(50% - 64px); /* Position immediately to the right of the form */
+  }
+}
+
+/* Animation for ISS flying up and off screen post-login */
+@keyframes issFlyOut {
+  0% {
+    transform: scale(2);
+    top: calc(50% + 52px);
+    right: calc(50% - 64px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    top: 0; /* Fly to the middle of the top of the page */
+    right: 50%; /* Center horizontally */
+    opacity: 0;
+  }
+}
+
+/* Animation for fading out login form, header, and Earth */
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Animation for fading the screen to black */
+@keyframes fadeToBlack {
+  0% {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  100% {
+    background-color: rgba(0, 0, 0, 1);
+  }
+}
+
+/* Animation for ISS rotating (kept for potential future use) */
+@keyframes issRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animation for loading state ISS */
+@keyframes issLoading {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(3);
+  }
+}
+
+/* Class definitions */
+.earth-fade-out {
+  animation: earthFadeOut 1s ease-in-out forwards;
+}
+
+.earth-fade-away {
+  animation: earthFadeAway 2s ease-in-out forwards;
+}
+
+.iss-fly-in {
+  animation: issFlyIn 1s linear forwards;
+  position: fixed;
+}
+
+.iss-fly-out {
+  animation: issFlyOut 2s linear forwards;
+  position: fixed;
+}
+
+.fade-out {
+  animation: fadeOut 2s ease-in-out forwards;
+}
+
+.fade-to-black {
+  animation: fadeToBlack 2s ease-in-out forwards;
+}
+
+.iss-rotate {
+  animation: issRotate 4s linear infinite;
+}
+
+.iss-loading {
+  animation: issLoading 2s ease-in-out forwards;
+}
+
+/* Input text color styles */
+input.input-text-white {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+}
+
+input.input-text-white::placeholder {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+}
+
+input.input-text-white:focus,
+input.input-text-white:active,
+input.input-text-white:not(:placeholder-shown) {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+}
+
+/* Login container centering */
+.login-container {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100vw !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 20 !important;
+}
+
+/* Tailwind imports */
+@import "tailwindcss/preflight";
+@import "tailwindcss";
