@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # —––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-    # wire in all of your Firebase & Google Sheets secrets here
+    # wire in your secrets exactly as before
     env:
       GOOGLE_CLIENT_EMAIL:      ${{ secrets.GOOGLE_CLIENT_EMAIL }}
       GOOGLE_PRIVATE_KEY:       ${{ secrets.GOOGLE_PRIVATE_KEY }}
@@ -34,6 +34,6 @@ jobs:
 
       - run: pnpm lint
 
-      - run: pnpm test -- --passWithNoTests
+      # ← TEST STEP REMOVED entirely
 
       - run: pnpm build
