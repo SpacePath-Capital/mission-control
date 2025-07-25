@@ -22,7 +22,7 @@ export default function UsernameList() {
         setUsernames([]);
       }
     }, (error) => {
-      console.error("Error fetching usernames:", error);
+      // Removed console.error
     });
 
     // Cleanup subscription on unmount

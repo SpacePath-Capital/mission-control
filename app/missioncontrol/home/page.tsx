@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import UsernameList from '@/app/components/UsernameList';
+import UsernameList from '@/components/UsernameList'; // Updated import path
 
 export default function MissionControlHome() {
   const [hydrated, setHydrated] = useState(false);
@@ -53,23 +53,23 @@ export default function MissionControlHome() {
         <h2 className="text-4xl font-bold">Mission Control</h2>
         <p className="mt-4 text-lg">Welcome to SpacePath Capital Mission Control</p>
         <div className="mt-8 flex gap-4 justify-center">
-          <Link href="/missioncontrol/pros/pros" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200">
+          <Link href="/missioncontrol/pros/pros" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200" style={{ color: '#000000' }}>
             <Image src="/mars.png" alt="Mars" width={20} height={20} unoptimized />
             PROS
           </Link>
-          <Link href="/missioncontrol/pros/snapshot" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200">
+          <Link href="/missioncontrol/pros/snapshot" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200" style={{ color: '#000000' }}>
             Snapshot
           </Link>
-          <Link href="/missioncontrol/pros/portfolio" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200">
+          <Link href="/missioncontrol/pros/portfolio" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200" style={{ color: '#000000' }}>
             Portfolio
           </Link>
-          <Link href="/missioncontrol/pros/watchlist" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200">
+          <Link href="/missioncontrol/pros/watchlist" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200" style={{ color: '#000000' }}>
             Watchlist
           </Link>
-          <Link href="/missioncontrol/pros/beta" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200">
+          <Link href="/missioncontrol/pros/beta" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200" style={{ color: '#000000' }}>
             Beta
           </Link>
-          <Link href="/missioncontrol/pros/tradehistory" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200">
+          <Link href="/missioncontrol/pros/tradehistory" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200" style={{ color: '#000000' }}>
             Trade History
           </Link>
         </div>

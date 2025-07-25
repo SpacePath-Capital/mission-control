@@ -35,7 +35,9 @@ export default function MissionControlLogin() {
 
   const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, username, password);
+      const credential = await signInWithEmailAndPassword(auth, username, password);
+      const token = await credential.user.getIdToken(); // Get auth token
+      document.cookie = \`authToken=\${token}; path=/;`; // Set cookie for middleware
       setShowLogin(false);
       setLoading(true);
       setPostLoginAnimation(true);
@@ -43,9 +45,9 @@ export default function MissionControlLogin() {
         setLoading(false);
         setCountdown(5); // Start countdown
       }, 2000); // Match post-login animation duration
-    } catch (error) { // Use unknown (default in strict mode)
+    } catch (error) {
       if (error instanceof Error) {
-        alert(`Login failed: ${error.message}`);
+        alert(\`Login failed: \${error.message}\`);
       } else {
         alert('Login failed: An unknown error occurred');
       }
@@ -80,9 +82,9 @@ export default function MissionControlLogin() {
 
       {/* Header */}
       <div
-        className={`absolute top-0 left-0 w-full z-20 flex items-start justify-between px-4 py-4 pointer-events-none ${
+        className= \`absolute top-0 left-0 w-full z-20 flex items-start justify-between px-4 py-4 pointer-events-none \${
           postLoginAnimation ? 'fade-out' : ''
-        }`}
+        }\`
       >
         <h1
           style={{ color: 'white', fontFamily: 'var(--font-orbitron)' }}
@@ -98,9 +100,9 @@ export default function MissionControlLogin() {
               width={40}
               height={40}
               unoptimized
-              className={`cursor-pointer hover:scale-110 transition-transform ${
+              className= \`cursor-pointer hover:scale-110 transition-transform \${
                 issAnimation ? 'iss-fly-in' : ''
-              }`}
+              }\`
               onClick={handleEarthClick}
               style={{ position: issAnimation ? 'fixed' : 'relative' }}
               data-debug="header-iss"
@@ -112,9 +114,9 @@ export default function MissionControlLogin() {
       {/* Earth: Click to login */}
       {!showLogin && !isLoggedIn && (
         <div
-          className={`absolute top-1/2 left-1/2 z-10 transform -translate-x-1/2 -translate-y-1/2 ${
+          className= \`absolute top-1/2 left-1/2 z-10 transform -translate-x-1/2 -translate-y-1/2 \${
             earthAnimation ? 'earth-fade-out' : postLoginAnimation ? 'earth-fade-away' : ''
-          }`}
+          }\`
         >
           <Image
             src="/earth.gif"
@@ -132,7 +134,7 @@ export default function MissionControlLogin() {
       {showLogin && !isLoggedIn && !loading && (
         <div className="login-container" data-debug="login-container">
           <div
-            className={`flex items-center gap-20 ${postLoginAnimation ? 'fade-out' : ''}`}
+            className= \`flex items-center gap-20 \$ {postLoginAnimation ? 'fade-out' : ''}\`
             data-debug="inner-flex"
           >
             <form
@@ -168,9 +170,9 @@ export default function MissionControlLogin() {
               width={40}
               height={40}
               unoptimized
-              className={`cursor-pointer hover:scale-110 transition-transform ${
+              className= \`cursor-pointer hover:scale-110 transition-transform \$ {
                 issAnimation && !postLoginAnimation ? 'iss-fly-in' : postLoginAnimation ? 'iss-fly-out' : ''
-              }`}
+              }\`
               onClick={handleLogin}
               data-debug="login-iss"
             />
