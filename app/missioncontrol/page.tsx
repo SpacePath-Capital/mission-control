@@ -34,7 +34,6 @@ export default function MissionControlLogin() {
   };
 
   const handleLogin = async () => {
-    console.log('Login triggered');
     try {
       await signInWithEmailAndPassword(auth, username, password);
       setShowLogin(false);
