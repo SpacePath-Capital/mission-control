@@ -37,7 +37,7 @@ export default function MissionControlLogin() {
     try {
       const credential = await signInWithEmailAndPassword(auth, username, password);
       const token = await credential.user.getIdToken(); // Get auth token
-      document.cookie = \`authToken=\${token}; path=/;`; // Set cookie for middleware
+      document.cookie = `authToken=${token}; path=/;`; // Set cookie for middleware
       setShowLogin(false);
       setLoading(true);
       setPostLoginAnimation(true);
@@ -47,7 +47,7 @@ export default function MissionControlLogin() {
       }, 2000); // Match post-login animation duration
     } catch (error) {
       if (error instanceof Error) {
-        alert(\`Login failed: \${error.message}\`);
+        alert(`Login failed: ${error.message}`);
       } else {
         alert('Login failed: An unknown error occurred');
       }

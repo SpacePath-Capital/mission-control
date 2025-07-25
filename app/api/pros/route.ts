@@ -60,7 +60,7 @@ export async function GET(request: Request) {
       });
 
       return {
-        Ticker: rowMap['Ticker'] || rowMap['Status'] || '', // Flexible mapping
+        Ticker: rowMap['Ticker'] || rowMap['Status'] || '',
         CompanyName: rowMap['Company'] || rowMap['Company Name'] || '',
         LivePrice: parseFloat(rowMap['Live Price']) || parseFloat(rowMap['Latest Price']) || 0,
         Quantity: parseInt(rowMap['Quantity'], 10) || 0,
@@ -76,7 +76,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json(data);
   } catch (err) {
-    console.error('Sheets API Error:', err);
     return NextResponse.json({ error: 'Failed to fetch or parse sheet data' }, { status: 500 });
   }
 }
@@ -189,7 +188,6 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ success: true });
     } else if (action === 'removeTrade') {
-      // Logic for removeTrade
       const dataSheetName = portfolioType === 'Long' ? 'LongData' : portfolioType === 'Short' ? 'ShortData' : 'WatchlistData';
       const sheetName = validSheets[dataSheetName.toLowerCase() as keyof typeof validSheets] || dataSheetName;
 
@@ -209,7 +207,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Cannot remove more shares than held' }, { status: 400 });
       }
 
-      // Append removal trade
       const priceQuantity = trade.quantity * trade.price;
       const dateQuantity = (new Date().getTime() / (1000 * 60 * 60 * 24) * trade.quantity);
 
@@ -359,7 +356,6 @@ export async function POST(request: Request) {
                 positionCost[ticker].Long.shift();
               }
             }
-            // Update the sheet with new PnL
             await sheets.spreadsheets.values.update({
               spreadsheetId,
               range: `TradeHistory!I${index + 2}`,
@@ -385,7 +381,6 @@ export async function POST(request: Request) {
                 positionCost[ticker].Short.shift();
               }
             }
-            // Update the sheet with new PnL
             await sheets.spreadsheets.values.update({
               spreadsheetId,
               range: `TradeHistory!I${index + 2}`,
@@ -403,7 +398,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (err) {
-    console.error('Sheets API Error:', err);
     return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
   }
 }
