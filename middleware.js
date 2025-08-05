@@ -1,21 +1,27 @@
 import { NextResponse } from 'next/server';
-import { getAuth } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
+
+console.log('Firebase Config in Middleware:', firebaseConfig);
+
+if (!firebaseConfig.apiKey) {
+  throw new Error('Missing NEXT_PUBLIC_FIREBASE_API_KEY in .env.local');
+}
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 export function middleware(request) {
-  const token = request.cookies.get('authToken'); // Assume you set a cookie on login
+  const token = request.cookies.get('authToken'); // Get token set by login
 
   // Exclude /missioncontrol from protection
   if (request.nextUrl.pathname === '/missioncontrol') {
@@ -26,8 +32,8 @@ export function middleware(request) {
     return NextResponse.redirect(new URL('/missioncontrol', request.url));
   }
 
-  // Simplified token validation (placeholder)
-  // For production, use Firebase Admin SDK to verify token server-side
+  // Placeholder token validation (for production, use Firebase Admin SDK)
+  // This is a basic check; enhance with proper JWT validation
   return NextResponse.next();
 }
 

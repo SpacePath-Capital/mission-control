@@ -2,27 +2,61 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import UsernameList from '@/components/UsernameList'; // Updated import path
+import { useRouter } from 'next/navigation';
+import { auth } from 'lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function MissionControlHome() {
   const [hydrated, setHydrated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     setHydrated(true);
-  }, []);
+
+    // Check authentication state
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+          const [key, value] = cookie.trim().split('=');
+          acc[key] = value;
+          return acc;
+        }, {} as Record<string, string>);
+        if (cookies.authToken) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          router.push('/missioncontrol');
+        }
+      } else {
+        setIsAuthenticated(false);
+        router.push('/missioncontrol');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+
+  if (isAuthenticated === null) {
+    return null; // Prevent rendering until auth check completes
+  }
+
+  if (!isAuthenticated) {
+    return null; // Redirect is handled in useEffect
+  }
 
   return (
     <div className="relative w-full h-screen bg-black text-white font-[var(--font-orbitron)] overflow-hidden">
       {/* Background Video */}
       <video
-        className="absolute inset-0 w-full h-full object-cover -z-10"
+        className="absolute inset-0 w-full h-full object-cover -z-10 opacity-100"
         autoPlay
         loop
         muted
         playsInline
+        preload="auto"
       >
-        <source src="/space.mp4" type="video/mp4" />
+        <source src="/space.mp4?v=7" type="video/mp4" />
       </video>
 
       {/* Header */}
@@ -35,47 +69,14 @@ export default function MissionControlHome() {
         </h1>
       </div>
 
-      {/* ISS Icon */}
-      <div className="absolute top-1/2 right-0 z-20 pointer-events-auto" style={{ transform: 'translate(-10px, -50%)' }}>
-        <Image
-          src="/iss.gif"
-          alt="ISS Icon"
-          width={40}
-          height={40}
-          unoptimized
-          className="transition-transform"
-          style={{ transform: 'scale(4)' }}
-        />
-      </div>
-
-      {/* Main Content */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-        <h2 className="text-4xl font-bold">Mission Control</h2>
-        <p className="mt-4 text-lg">Welcome to SpacePath Capital Mission Control</p>
-        <div className="mt-8 flex gap-4 justify-center">
-          <Link href="/missioncontrol/pros/pros" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200" style={{ color: '#000000' }}>
-            <Image src="/mars.png" alt="Mars" width={20} height={20} unoptimized />
-            PROS
-          </Link>
-          <Link href="/missioncontrol/pros/snapshot" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200" style={{ color: '#000000' }}>
-            Snapshot
-          </Link>
-          <Link href="/missioncontrol/pros/portfolio" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200" style={{ color: '#000000' }}>
-            Portfolio
-          </Link>
-          <Link href="/missioncontrol/pros/watchlist" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200" style={{ color: '#000000' }}>
-            Watchlist
-          </Link>
-          <Link href="/missioncontrol/pros/beta" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200" style={{ color: '#000000' }}>
-            Beta
-          </Link>
-          <Link href="/missioncontrol/pros/tradehistory" className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-200" style={{ color: '#000000' }}>
-            Trade History
-          </Link>
-        </div>
-        <div className="mt-8">
-          <UsernameList />
-        </div>
+        <button
+          onClick={() => router.push('/missioncontrol/PROS/snapshot')} 
+          className="flex flex-col items-center gap-2"
+        >
+          <Image src="/mars.gif" alt="Mars Icon" width={100} height={100} unoptimized />
+          <p className="text-xl font-bold mt-2">PROS</p>
+        </button>
       </div>
 
       {/* Footer */}
@@ -102,7 +103,7 @@ export default function MissionControlHome() {
               fontFamily: 'var(--font-orbitron)',
             }}
           >
-            © {new Date().getFullYear()} SpacePath Capital. All systems secured and monitored.
+            © 2025 SpacePath Capital. All systems secured and monitored.
           </p>
         </div>
       )}
