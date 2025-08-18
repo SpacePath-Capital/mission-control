@@ -21,8 +21,6 @@ export default function UsernameList() {
       } else {
         setUsernames([]);
       }
-    }, (error) => {
-      // Removed console.error
     });
 
     // Cleanup subscription on unmount

@@ -1,6 +1,8 @@
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 
+export const runtime = 'nodejs';
+
 interface PositionRow {
   Ticker?: string;
   CompanyName?: string;
@@ -17,23 +19,23 @@ interface PositionRow {
 }
 
 const validSheets = {
-  'pros': 'PROS 0.0',
-  'snapshot': 'Snapshot',
-  'portfolio': 'Portfolio',
-  'watchlist': 'Watchlist',
-  'beta': 'Beta',
-  'tradehistory': 'TradeHistory',
-  'longdata': 'LongData',
-  'shortdata': 'ShortData',
-  'watchlistdata': 'WatchlistData',
+  pros: 'PROS 0.0',
+  snapshot: 'Snapshot',
+  portfolio: 'Portfolio',
+  watchlist: 'Watchlist',
+  beta: 'Beta',
+  tradehistory: 'TradeHistory',
+  longdata: 'LongData',
+  shortdata: 'ShortData',
+  watchlistdata: 'WatchlistData',
 };
 
-const defaultSheet = 'Portfolio';
+const defaultSheet = 'portfolio'; // Lowercase to match key
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const sheetParam = url.searchParams.get('sheet')?.toLowerCase() || defaultSheet.toLowerCase();
-  const sheetName = validSheets[sheetParam as keyof typeof validSheets] || validSheets[defaultSheet];
+  const sheetParam = url.searchParams.get('sheet')?.toLowerCase() || defaultSheet;
+  const sheetName = validSheets[sheetParam as keyof typeof validSheets] || validSheets.portfolio;
 
   try {
     const credentials = JSON.parse(Buffer.from(process.env.GOOGLE_SERVICE_KEY_BASE64 || '', 'base64').toString());
@@ -75,7 +77,7 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(data);
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch or parse sheet data' }, { status: 500 });
   }
 }
@@ -92,6 +94,16 @@ export async function POST(request: Request) {
     });
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SHEET_ID || '1neHsYuOVGDUjY6M2UWehoHAM1qaI0h1x0kNWnKi2rvM';
+
+    // Helper function to get sheetId by name
+    const getSheetId = async (sheetName: string): Promise<number | null> => {
+      const res = await sheets.spreadsheets.get({
+        spreadsheetId,
+        fields: 'sheets(properties(sheetId,title))',
+      });
+      const sheet = res.data.sheets?.find(s => s.properties?.title === sheetName);
+      return sheet?.properties?.sheetId ?? null;
+    };
 
     if (action === 'addTrade') {
       const dataSheetName = portfolioType === 'Long' ? 'LongData' : portfolioType === 'Short' ? 'ShortData' : portfolioType === 'Watchlist' ? 'WatchlistData' : 'TradeHistory';
@@ -168,13 +180,17 @@ export async function POST(request: Request) {
         const watchlistRows = watchlistResponse.data.values || [];
         const watchlistIndex = watchlistRows.findIndex(row => row[0] === trade.ticker);
         if (watchlistIndex !== -1) {
+          const watchlistSheetId = await getSheetId('WatchlistData');
+          if (watchlistSheetId === null) {
+            throw new Error('WatchlistData sheet not found');
+          }
           await sheets.spreadsheets.batchUpdate({
             spreadsheetId,
             requestBody: {
               requests: [{
                 deleteRange: {
                   range: {
-                    sheetId: watchlistResponse.config.sheetId,
+                    sheetId: watchlistSheetId,
                     startRowIndex: watchlistIndex,
                     endRowIndex: watchlistIndex + 1,
                   },
@@ -235,6 +251,8 @@ export async function POST(request: Request) {
           values: [rowData],
         },
       });
+
+      const tradeType = portfolioType === 'Long' ? (trade.quantity > 0 ? 'Buy' : 'Sell') : portfolioType === 'Short' ? (trade.quantity > 0 ? 'Buy-to-Cover' : 'Sell') : '';
 
       const historyRow = [
         trade.ticker,
@@ -301,13 +319,18 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Ticker not found in Watchlist' }, { status: 404 });
       }
 
+      const watchlistSheetId = await getSheetId('WatchlistData');
+      if (watchlistSheetId === null) {
+        throw new Error('WatchlistData sheet not found');
+      }
+
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId,
         requestBody: {
           requests: [{
             deleteRange: {
               range: {
-                sheetId: watchlistResponse.config.sheetId,
+                sheetId: watchlistSheetId,
                 startRowIndex: rowIndex - 1,
                 endRowIndex: rowIndex,
               },
@@ -325,15 +348,16 @@ export async function POST(request: Request) {
       });
       const rows = historyResponse.data.values || [];
 
-      const realizedPnL = {};
-      const positionCost = {};
+      const realizedPnL: { [ticker: string]: { Long: number; Short: number } } = {};
+      const positionCost: { [ticker: string]: { Long: { quantity: number; price: number }[]; Short: { quantity: number; price: number }[] } } = {};
 
-      rows.forEach((row, index) => {
+      for (let index = 0; index < rows.length; index++) {
+        const row = rows[index];
         const [ticker, portfolioType, tradeType, quantityStr, priceStr] = row;
         const q = parseFloat(quantityStr);
         const p = parseFloat(priceStr);
 
-        if (!ticker || isNaN(q) || isNaN(p)) return;
+        if (!ticker || isNaN(q) || isNaN(p)) continue;
 
         if (!realizedPnL[ticker]) {
           realizedPnL[ticker] = { Long: 0, Short: 0 };
@@ -346,7 +370,7 @@ export async function POST(request: Request) {
           } else if (tradeType === 'Sell') {
             let sellQuantity = Math.abs(q);
             while (sellQuantity > 0 && positionCost[ticker].Long.length > 0) {
-              let buy = positionCost[ticker].Long[0];
+              const buy = positionCost[ticker].Long[0];
               const quantityToClose = Math.min(sellQuantity, buy.quantity);
               const profit = quantityToClose * (p - buy.price);
               realizedPnL[ticker].Long += profit;
@@ -371,7 +395,7 @@ export async function POST(request: Request) {
           } else if (tradeType === 'Buy-to-Cover') {
             let buyQuantity = q;
             while (buyQuantity > 0 && positionCost[ticker].Short.length > 0) {
-              let sell = positionCost[ticker].Short[0];
+              const sell = positionCost[ticker].Short[0];
               const quantityToClose = Math.min(buyQuantity, sell.quantity);
               const profit = quantityToClose * (sell.price - p);
               realizedPnL[ticker].Short += profit;
@@ -391,13 +415,13 @@ export async function POST(request: Request) {
             });
           }
         }
-      });
+      }
 
       return NextResponse.json({ success: true });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
   }
 }

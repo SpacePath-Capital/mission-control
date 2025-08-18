@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { auth } from 'lib/firebase';
@@ -59,7 +59,8 @@ export default function MissionControlLogin() {
       const credential = await signInWithEmailAndPassword(auth, username, password);
       const token = await credential.user.getIdToken();
       console.log('Login successful, token:', token);
-      document.cookie = `authToken=${token}; path=/; Secure; HttpOnly; SameSite=Strict`;
+      const isProd = process.env.NODE_ENV === 'production';
+      document.cookie = `authToken=${token}; path=/; ${isProd ? 'Secure;' : ''} SameSite=Strict`;
       setShowLogin(false);
       setPostLoginAnimation(true);
       setCountdown(3);
@@ -82,8 +83,12 @@ export default function MissionControlLogin() {
     try {
       await sendPasswordResetEmail(auth, email);
       alert('Password reset email sent! Please check your inbox.');
-    } catch (error: any) {
-      alert(`Error sending password reset email: ${error.message}`);
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(`Error sending password reset email: ${error.message}`);
+      } else {
+        alert('Error sending password reset email: An unknown error occurred');
+      }
     }
   };
 
@@ -97,8 +102,10 @@ export default function MissionControlLogin() {
       return () => clearTimeout(timer);
     } else if (countdown === 0) {
       const timer = setTimeout(() => {
+        console.log('Countdown finished, setting isLoggedIn to true and redirecting...');
         setIsLoggedIn(true);
         router.push('/missioncontrol/home');
+        console.log('Redirect executed');
       }, 1000);
       return () => clearTimeout(timer);
     }
